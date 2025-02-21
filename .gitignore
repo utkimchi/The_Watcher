@@ -171,3 +171,5 @@ cython_debug/
 .pypirc
 /Watcher_venv/Scripts
 /Watcher_venv
+
+AdBlock
