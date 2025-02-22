@@ -5,6 +5,8 @@
 For some unknown reason Letterboxd hasn't allowed collaboration on lists! This little discord bot fixes that.
 Made using [Discord.py](https://github.com/Rapptz/discord.py)
 
+Letterboxd *please* give me API access
+
 ## Features
 1. *Add Movie*  : Allows anyone in your discord to add a movie to your Letterboxd list.
 2. *Delete Move* : For when someone adds a terrible pick.
