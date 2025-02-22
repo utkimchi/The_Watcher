@@ -199,8 +199,6 @@ class addmovie(commands.Cog):
 
                 try:
                     print("t")
-                    element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, "a[@class='next']")))
-                    print("Next")
                     pages = driver.find_elements(By.XPATH, "//li[contains(@class,'paginate-page')]//a")
                     print(pages)
                     pages = [p.get_text() for p in pages]
