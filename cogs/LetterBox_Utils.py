@@ -25,7 +25,7 @@ class addmovie(commands.Cog):
         self.lb_pass = os.getenv("LB_PASSWORD")
 
         self.options = Options()
-        self.options.add_argument('--headless=new')
+        #self.options.add_argument('--headless=new')
         self.options.add_argument('load-extension=' + self.adblock_path)
         self.options.add_argument('--ignore-certificate-errors')
         self.options.add_argument('--ignore-ssl-errors')
@@ -45,41 +45,49 @@ class addmovie(commands.Cog):
         if SLOW_ROLLING_TEST_MODE:
             zzz(SLOW_ROLLING_TEST_MODE_SPEED)
 
+        return driver, element
+
 
     @discord.app_commands.command(name="addmovie",description= "Add a Letterboxd link to our Kinosphere!")
     async def addmovie(self, interaction: discord.Interaction, movie_title: str, list: str = None):
+            await interaction.response.defer()
+            print("OPP")
             if list == None:
                 list = 'Kinosphere'
-            await interaction.response.defer()
             movie_hyph = os.path.basename(movie_title.rstrip('/'))
-            asd:discord.Message = await interaction.followup.send(f"Gonna try to add {movie_hyph}...")
+            mess = f"Gonna try to add {movie_hyph}..."
+            asd = await interaction.followup.send(mess)
             try:
                 if 'letterboxd' not in movie_title:
-                    return await interaction.followup.edit_message("You need a link like ->> https://letterboxd.com/film/suspiria/")
+                    return asd.edit_message("You need a link like ->> https://letterboxd.com/film/suspiria/")
                 
                 driver = webdriver.Chrome(options=self.options)
-                driver.implicitly_wait(5)
-                actions = ActionChains(driver)
-
-                self.login(driver)
-                await interaction.followup.edit_message(message_id=asd.id,content="Logged in!")
-
+                await asd.edit(content="Logging in!")
+                driver, element = await self.login(driver)
+                print(movie_title)
                 driver.get(movie_title)
 
                 if SLOW_ROLLING_TEST_MODE:
                     zzz(SLOW_ROLLING_TEST_MODE_SPEED)
 
                 element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.LINK_TEXT, "Add to lists…")))
+                element = driver.find_element(By.LINK_TEXT, "Add to lists…")
                 element.click()
 
-                await interaction.followup.edit_message(message_id=asd.id,content="Cool list!")
+                if SLOW_ROLLING_TEST_MODE:
+                    zzz(SLOW_ROLLING_TEST_MODE_SPEED)
+
+                await asd.edit(content="Cool list!")
 
                 chosen_path = f"//label[contains(@class,'-added')][contains(@class,'list')]/span[@class='label']/span[contains(.,'{list}')]"
                 click_path = f"//span[contains(.,'{list}')]"
+
+                element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.LINK_TEXT, "New list…")))
+
                 try:
                     element = driver.find_element(By.XPATH, chosen_path)
                     driver.quit()
-                    return await interaction.followup.edit_message("That movie already is on the list!")         
+                    return asd.edit("That movie already is on the list!")         
                 except:
                     element = driver.find_element(By.XPATH, click_path)
 
@@ -96,16 +104,17 @@ class addmovie(commands.Cog):
                 driver.quit()
 
                 
-                await interaction.followup.edit_message(f"You add yo movie {movie_hyph}. Congrats")
+                await asd.edit(f"You add yo movie {movie_hyph}. Congrats")
             except RuntimeError:
                 driver.quit()
-                await interaction.followup.edit_message("sumtin wong")
+                await asd.edit("sumtin wong")
 
     @discord.app_commands.command(name="delmovie",description= "Removie a Letterboxd link to our Kinosphere!")
-    async def addmovie(self, interaction: discord.Interaction, movie_title: str, list: str = None):
+    async def delmovie(self, interaction: discord.Interaction, movie_title: str, list: str = None):
+            await interaction.response.defer()
+
             if list == None:
                 list = 'Kinosphere'
-            await interaction.response.defer()
             movie_hyph = os.path.basename(movie_title.rstrip('/'))
             asd:discord.Message = await interaction.followup.send(f"Gonna try to remove {movie_hyph}...")
 
