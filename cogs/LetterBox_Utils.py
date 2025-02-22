@@ -56,7 +56,7 @@ class addmovie(commands.Cog):
                 list = 'Kinosphere'
             movie_hyph = os.path.basename(movie_title.rstrip('/'))
             mess = f"Gonna try to add {movie_hyph}..."
-            asd = await interaction.followup.send(mess)
+            asd = await interaction.followup.send(mess,wait=True)
             try:
                 if 'letterboxd' not in movie_title:
                     return asd.edit_message("You need a link like ->> https://letterboxd.com/film/suspiria/")
@@ -104,10 +104,10 @@ class addmovie(commands.Cog):
                 driver.quit()
 
                 
-                await asd.edit(f"You add yo movie {movie_hyph}. Congrats")
+                await asd.edit(content= f"You add yo movie {movie_hyph}. Congrats")
             except RuntimeError:
                 driver.quit()
-                await asd.edit("sumtin wong")
+                await asd.edit(content= "sumtin wong")
 
     @discord.app_commands.command(name="delmovie",description= "Removie a Letterboxd link to our Kinosphere!")
     async def delmovie(self, interaction: discord.Interaction, movie_title: str, list: str = None):
@@ -117,10 +117,10 @@ class addmovie(commands.Cog):
                 list = 'Kinosphere'
             movie_hyph = os.path.basename(movie_title.rstrip('/'))
             mess = f"Gonna try to delete {movie_hyph}..."
-            asd = await interaction.followup.send(mess)
+            asd = await interaction.followup.send(mess,wait=True)
             try:
                 if 'letterboxd' not in movie_title:
-                    return asd.edit_message("You need a link like ->> https://letterboxd.com/film/suspiria/")
+                    return asd.edit(content="You need a link like ->> https://letterboxd.com/film/suspiria/")
             
                 driver = webdriver.Chrome(options=self.options)
                 await asd.edit(content="Logging in!")
@@ -131,11 +131,11 @@ class addmovie(commands.Cog):
                     zzz(SLOW_ROLLING_TEST_MODE_SPEED)
 
 
-                driver.find_element(By.XPATH,"//div[@id='js-poster-col']/descendant::div[@class='film-poster']")
+                element = driver.find_element(By.XPATH,"//div[@id='js-poster-col']//div[contains(@class,'film-poster')]")
                 data_id = element.get_attribute('data-item-id')
                 print(data_id)
 
-                list_string = f"https://letterboxd.com/{self.lb_user}/list/{list}/edit"
+                list_string = f"https://letterboxd.com/{self.lb_user.lower()}/list/{list.lower()}/edit"
                 driver.get(list_string)
 
                 if SLOW_ROLLING_TEST_MODE:
@@ -144,20 +144,23 @@ class addmovie(commands.Cog):
                 try:
                     element = driver.find_element(By.XPATH, "body[contains(@class, error) and contains(@class,message-dark)]")
                     driver.quit()
-                    await interaction.followup.edit_message(message_id=asd.id,content="That List don't exist..")
+                    await asd.edit(content= "That List don't exist..")
                 except:
-                    element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable(By.XPATH, f"//div[contains(@data-item-id,'{data_id}')]/following-sibling::span[@class='list-item-actions']/a"))
+                    element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, f"//div[contains(@data-item-id,'{data_id}')]/following-sibling::span[@class='list-item-actions']/a")))
                     element.click()
 
-                element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable(By.XPATH, f"//a[@id='list-edit-save']"))
+                if SLOW_ROLLING_TEST_MODE:
+                    zzz(SLOW_ROLLING_TEST_MODE_SPEED)
+
+                element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, f"//a[@id='list-edit-save']")))
                 element.click()
 
-                return await interaction.followup.edit_message("Deleted tha shii ")
-
                 driver.quit()
+                await asd.edit(content="Deleted tha shii ")
+
             except RuntimeError:
                 driver.quit()
-                await interaction.followup.edit_message("sumtin wong")    
+                await asd.edit(content="sumtin wong")    
 
             
 
