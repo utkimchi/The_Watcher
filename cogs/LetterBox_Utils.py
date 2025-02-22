@@ -1,4 +1,5 @@
 from time import sleep as zzz
+import random
 import os
 from os.path import join
 from pathlib import Path
@@ -112,12 +113,13 @@ class addmovie(commands.Cog):
     @discord.app_commands.command(name="delmovie",description= "Removie a Letterboxd link to our Kinosphere!")
     async def delmovie(self, interaction: discord.Interaction, movie_title: str, list: str = None):
             await interaction.response.defer()
-
             if list == None:
                 list = 'Kinosphere'
             movie_hyph = os.path.basename(movie_title.rstrip('/'))
             mess = f"Gonna try to delete {movie_hyph}..."
             asd = await interaction.followup.send(mess,wait=True)
+
+
             try:
                 if 'letterboxd' not in movie_title:
                     return asd.edit(content="You need a link like ->> https://letterboxd.com/film/suspiria/")
@@ -156,15 +158,59 @@ class addmovie(commands.Cog):
                 element.click()
 
                 driver.quit()
-                await asd.edit(content="Deleted tha shii ")
+                await asd.edit(content=f"Deleted tha {movie_hyph}. Congrats")
 
             except RuntimeError:
                 driver.quit()
                 await asd.edit(content="sumtin wong")    
 
+    @discord.app_commands.command(name="randomovie",description= "Get a random flick from our Kinosphere!")
+    async def randomovie(self, interaction: discord.Interaction, list_name: str = None):
+            await interaction.response.defer()
+            if list_name == None:
+                list_name = 'https://letterboxd.com/beeferweller/list/kinosphere/'
+            list_hyph = os.path.basename(list_name.rstrip('/'))
+            mess = f"Gonna try to find a random movie off {list_hyph}..."
+            asd = await interaction.followup.send(mess,wait=True)
+
+            try:
+                if 'letterboxd' not in list_name:
+                    return asd.edit(content="You need a link like ->> https://letterboxd.com/film/suspiria/")
             
+                driver = webdriver.Chrome(options=self.options)
+                await asd.edit(content="Logging in!")
+                driver, element = await self.login(driver)
+                driver.get(list_name)
 
+                if SLOW_ROLLING_TEST_MODE:
+                    zzz(SLOW_ROLLING_TEST_MODE_SPEED)
 
+                movie_list = []
+
+                try:
+                    element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, f"//a[@class='next']")))
+                    pages = driver.find_elements(By.XPATH, "div[//@class='paginate-page]")
+                    pages = [p.getText() for p in pages]
+                    pnum = random.choice(pages)
+                    if pnum != 1:
+                        new_page = f"page/{str(pnum)}/"
+                        new_page = list_name+new_page
+                        driver.get(new_page)
+                    if SLOW_ROLLING_TEST_MODE:
+                        zzz(SLOW_ROLLING_TEST_MODE_SPEED)
+                except:
+                    await asd.edit(content="Small List!")
+
+                element = driver.find_elements(By.XPATH, "//ul[contains(@class, 'film-list') and contains(@class,'poster-list')]//div")
+                movie_slug = random.choice(element).getAttribute('data-film-slug')
+                random_page_link = "https://letterboxd.com/film/"+movie_slug
+
+                await asd.edit(f"Here ya go! \n {random_page_link}")
+
+            except:
+                await asd.edit(content="Couldn't finda friggin film..")
+
+            
 async def setup(bot):
     await bot.add_cog(addmovie(bot))
 
