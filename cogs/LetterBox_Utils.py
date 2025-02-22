@@ -116,19 +116,22 @@ class addmovie(commands.Cog):
             if list == None:
                 list = 'Kinosphere'
             movie_hyph = os.path.basename(movie_title.rstrip('/'))
-            asd:discord.Message = await interaction.followup.send(f"Gonna try to remove {movie_hyph}...")
-
+            mess = f"Gonna try to delete {movie_hyph}..."
+            asd = await interaction.followup.send(mess)
             try:
                 if 'letterboxd' not in movie_title:
-                    return await interaction.followup.edit_message("You need a link like ->> https://letterboxd.com/film/suspiria/")
+                    return asd.edit_message("You need a link like ->> https://letterboxd.com/film/suspiria/")
             
                 driver = webdriver.Chrome(options=self.options)
-                driver.implicitly_wait(5)
-                self.login(driver)
-                await interaction.followup.edit_message(message_id=asd.id,content="Logged in!")
-
+                await asd.edit(content="Logging in!")
+                driver, element = await self.login(driver)
                 driver.get(movie_title)
-                element = WebDriverWait(driver, 5).until(EC.visibilityOfElementLocated(By.XPATH,"//div[@id='js-poster-col']/div[@class='film-poster']"))
+
+                if SLOW_ROLLING_TEST_MODE:
+                    zzz(SLOW_ROLLING_TEST_MODE_SPEED)
+
+
+                driver.find_element(By.XPATH,"//div[@id='js-poster-col']/descendant::div[@class='film-poster']")
                 data_id = element.get_attribute('data-item-id')
                 print(data_id)
 
