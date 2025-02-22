@@ -25,7 +25,7 @@ class addmovie(commands.Cog):
         self.adblock_path = join(bp, 'AdBlock')
         self.lb_user = os.getenv("LB_USERNAME")
         self.lb_pass = os.getenv("LB_PASSWORD")
-        self.usr1 = os.getenv("LB_USER_1")
+        self.lb_list = os.getenv("LB_LIST_NAME")
 
         self.options = Options()
         #self.options.add_argument('--headless=new')
@@ -51,12 +51,12 @@ class addmovie(commands.Cog):
         return driver, element
 
 
-    @discord.app_commands.command(name="addmovie",description= "Add a Letterboxd link to our Kinosphere!")
+    @discord.app_commands.command(name="addmovie",description= "Add a Letterboxd link to the Kinosphere!")
     async def addmovie(self, interaction: discord.Interaction, movie_title: str, list: str = None):
             await interaction.response.defer()
             print("OPP")
             if list == None:
-                list = 'Kinosphere'
+                list = self.lb_list
             movie_hyph = os.path.basename(movie_title.rstrip('/'))
             mess = f"Gonna try to add {movie_hyph}..."
             asd = await interaction.followup.send(mess,wait=True)
@@ -112,11 +112,11 @@ class addmovie(commands.Cog):
                 driver.quit()
                 await asd.edit(content= "sumtin wong")
 
-    @discord.app_commands.command(name="delmovie",description= "Removie a Letterboxd link to our Kinosphere!")
+    @discord.app_commands.command(name="delmovie",description= "Removie a Letterboxd link in our Kinosphere!")
     async def delmovie(self, interaction: discord.Interaction, movie_title: str, list: str = None):
             await interaction.response.defer()
             if list == None:
-                list = 'Kinosphere'
+                list = self.lb_list
             movie_hyph = os.path.basename(movie_title.rstrip('/'))
             mess = f"Gonna try to delete {movie_hyph}..."
             asd = await interaction.followup.send(mess,wait=True)
@@ -168,19 +168,22 @@ class addmovie(commands.Cog):
 
     @discord.app_commands.command(name="randomovie",description= "Get a random flick from our Kinosphere!")
     @discord.app_commands.choices(ourlists=[
-        discord.app_commands.Choice(name="Kinosphere", value="kinosphere"),
-        discord.app_commands.Choice(name="Triple C", value="ccc-ppp")
+        discord.app_commands.Choice(name="Kinosphere", value=("editin.env","editin.env")),
+        discord.app_commands.Choice(name="Triple C", value=("scrofa","ccc-ppp"))
     ])
-    
-    async def randomovie(self, interaction: discord.Interaction, otherlistlink: str = None, ourlists: discord.app_commands.Choice[str] = None):
+
+    async def randomovie(self, interaction: discord.Interaction, otherlistlink: str = None, ourlists: discord.app_commands.Choice[tuple] = None):
             print("THIS HAS BEEN RELOADED")
             await interaction.response.defer()
 
             if ourlists is not None:
-                list_name = f'https://letterboxd.com/{self.usr1}/list/{ourlists.value}/'
+                if ourlists.name == "Kinosphere":
+                    list_name = f'https://letterboxd.com/{self.lb_user}/list/{self.lb_list}/'
+                else:
+                    list_name = f'https://letterboxd.com/{ourlists.value[0]}/list/{ourlists.value[1]}/'
             else:
                 if otherlistlink == None:
-                    otherlistlink = f'https://letterboxd.com/{self.lb_user.lower()}/list/kinosphere/'
+                    otherlistlink = f'https://letterboxd.com/{self.lb_user.lower()}/list/{self.lb_list}/'
                 else:
                     list_name = otherlistlink
 
