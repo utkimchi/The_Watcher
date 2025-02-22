@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 import cogs.LetterBox_Utils as lu
 from discord.ext import commands
-from discord import app_commands
+from typing import Literal, Optional
 import asyncio
 import logging
 import logging.handlers
@@ -19,8 +19,7 @@ class MyBot(commands.Bot):
             if file.endswith('.py'):
                 print(file)
                 await self.load_extension(f'cogs.{file[:-3]}')
-        synced = await self.tree.sync()
-        print(f"Synced {len(synced)}command(s).")
+        print("Bot Up")
         
 
 logger = logging.getLogger('discord')
@@ -43,15 +42,53 @@ bot_token = os.getenv("BOT_TOKEN")
 disc_id = os.getenv("DISC_ID")
 bot = MyBot()
 
-@bot.tree.command(name='sync', description='Owner only')
-async def sync(interaction: discord.Interaction):
-    await interaction.response.defer()
-    if interaction.user.id == int(disc_id):
-        print("Syncing")
-        await bot.tree.sync()
-        await interaction.followup.send('Command tree synced.')
-    else:
-        await interaction.followup.send('You must be the owner to use this command!')
+@bot.command()
+@commands.guild_only()
+@commands.is_owner()
+async def sync(ctx: commands.Context, guilds: commands.Greedy[discord.Object], spec: Optional[Literal["~", "*", "^"]] = None) -> None:
+    if not guilds:
+        if spec == "~":
+            synced = await ctx.bot.tree.sync(guild=ctx.guild)
+        elif spec == "*":
+            ctx.bot.tree.copy_global_to(guild=ctx.guild)
+            synced = await ctx.bot.tree.sync(guild=ctx.guild)
+        elif spec == "^":
+            ctx.bot.tree.clear_commands(guild=ctx.guild)
+            await ctx.bot.tree.sync(guild=ctx.guild)
+            synced = []
+        else:
+            synced = await ctx.bot.tree.sync()
+
+        await ctx.send(
+            f"Synced {len(synced)} commands {'globally' if spec is None else 'to the current guild.'}"
+        )
+        return
+
+    ret = 0
+    for guild in guilds:
+        try:
+            await ctx.bot.tree.sync(guild=guild)
+        except discord.HTTPException:
+            pass
+        else:
+            ret += 1
+
+    await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.")
+
+@bot.command()
+@commands.is_owner()
+async def reload(ctx):
+    for file in os.listdir(f'./cogs'):
+        if file.endswith('.py'):
+            print(f"Reloading {file}")
+            await bot.reload_extension(f'cogs.{file[:-3]}')
+    print(f"Reloaded")
+
+@bot.command()
+@commands.is_owner()
+async def scoms(ctx):
+    for c in bot.commands:
+        print(c.name)
 
 @bot.event
 async def main():

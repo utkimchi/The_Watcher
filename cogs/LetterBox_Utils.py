@@ -10,6 +10,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+import typing
 import discord
 from discord.ext import commands
 
@@ -165,31 +166,41 @@ class addmovie(commands.Cog):
                 await asd.edit(content="sumtin wong")    
 
     @discord.app_commands.command(name="randomovie",description= "Get a random flick from our Kinosphere!")
-    async def randomovie(self, interaction: discord.Interaction, list_name: str = None):
+    @discord.app_commands.choices(Our_Lists=[
+        discord.app_commands.Choice(name="Kinosphere", value="kinosphere"),
+        discord.app_commands.Choice(name="Triple C", value="ccc-ppp")
+    ])
+    
+    async def randomovie(self, interaction: discord.Interaction,  List_Link: str = None, Our_Lists: discord.app_commands.Choice[str] = None):
+            print("THIS HAS BEEN RELOADED")
             await interaction.response.defer()
-            if list_name == None:
-                list_name = 'https://letterboxd.com/beeferweller/list/kinosphere/'
+
+            if Our_Lists is not None:
+                list_name = f'https://letterboxd.com/beeferweller/list/{Our_Lists.value}/'
+            else:
+                if List_Link == None:
+                    list_link = 'https://letterboxd.com/beeferweller/list/kinosphere/'
+                else:
+                    list_name = List_Link
+
             list_hyph = os.path.basename(list_name.rstrip('/'))
             mess = f"Gonna try to find a random movie off {list_hyph}..."
             asd = await interaction.followup.send(mess,wait=True)
-
             try:
                 if 'letterboxd' not in list_name:
                     return asd.edit(content="You need a link like ->> https://letterboxd.com/film/suspiria/")
             
                 driver = webdriver.Chrome(options=self.options)
-                await asd.edit(content="Logging in!")
-                driver, element = await self.login(driver)
+                # await asd.edit(content="Logging in!")
+                # driver, element = await self.login(driver)
                 driver.get(list_name)
 
                 if SLOW_ROLLING_TEST_MODE:
                     zzz(SLOW_ROLLING_TEST_MODE_SPEED)
 
-                movie_list = []
-
                 try:
-                    element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, f"//a[@class='next']")))
-                    pages = driver.find_elements(By.XPATH, "div[//@class='paginate-page]")
+                    element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, f"div[@class='next']")))
+                    pages = driver.find_elements(By.XPATH, "//div[@class='paginate-page]")
                     pages = [p.getText() for p in pages]
                     pnum = random.choice(pages)
                     if pnum != 1:
@@ -201,13 +212,16 @@ class addmovie(commands.Cog):
                 except:
                     await asd.edit(content="Small List!")
 
-                element = driver.find_elements(By.XPATH, "//ul[contains(@class, 'film-list') and contains(@class,'poster-list')]//div")
-                movie_slug = random.choice(element).getAttribute('data-film-slug')
-                random_page_link = "https://letterboxd.com/film/"+movie_slug
-
-                await asd.edit(f"Here ya go! \n {random_page_link}")
-
+                elements = driver.find_elements(By.XPATH, "//ul[contains(@class, 'film-list') and contains(@class,'poster-list')]//li//div")
+                slugs = [e.get_attribute('data-film-slug') for e in elements if e.get_attribute('data-film-slug') is not None]
+                movie_slug = random.choice(slugs)
+                random_page_link = f"https://letterboxd.com/film/{movie_slug}/"
+                print(random_page_link)
+                driver.quit()
+                mess = f"Here ya go! {random_page_link}"
+                await asd.edit(content=mess)
             except:
+                driver.quit()
                 await asd.edit(content="Couldn't finda friggin film..")
 
             
