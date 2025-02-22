@@ -25,6 +25,7 @@ class addmovie(commands.Cog):
         self.adblock_path = join(bp, 'AdBlock')
         self.lb_user = os.getenv("LB_USERNAME")
         self.lb_pass = os.getenv("LB_PASSWORD")
+        self.usr1 = os.getenv("LB_USER_1")
 
         self.options = Options()
         #self.options.add_argument('--headless=new')
@@ -166,22 +167,22 @@ class addmovie(commands.Cog):
                 await asd.edit(content="sumtin wong")    
 
     @discord.app_commands.command(name="randomovie",description= "Get a random flick from our Kinosphere!")
-    @discord.app_commands.choices(Our_Lists=[
+    @discord.app_commands.choices(ourlists=[
         discord.app_commands.Choice(name="Kinosphere", value="kinosphere"),
         discord.app_commands.Choice(name="Triple C", value="ccc-ppp")
     ])
     
-    async def randomovie(self, interaction: discord.Interaction,  List_Link: str = None, Our_Lists: discord.app_commands.Choice[str] = None):
+    async def randomovie(self, interaction: discord.Interaction, otherlistlink: str = None, ourlists: discord.app_commands.Choice[str] = None):
             print("THIS HAS BEEN RELOADED")
             await interaction.response.defer()
 
-            if Our_Lists is not None:
-                list_name = f'https://letterboxd.com/beeferweller/list/{Our_Lists.value}/'
+            if ourlists is not None:
+                list_name = f'https://letterboxd.com/{self.usr1}/list/{ourlists.value}/'
             else:
-                if List_Link == None:
-                    list_link = 'https://letterboxd.com/beeferweller/list/kinosphere/'
+                if otherlistlink == None:
+                    otherlistlink = f'https://letterboxd.com/{self.lb_user.lower()}/list/kinosphere/'
                 else:
-                    list_name = List_Link
+                    list_name = otherlistlink
 
             list_hyph = os.path.basename(list_name.rstrip('/'))
             mess = f"Gonna try to find a random movie off {list_hyph}..."
@@ -191,17 +192,18 @@ class addmovie(commands.Cog):
                     return asd.edit(content="You need a link like ->> https://letterboxd.com/film/suspiria/")
             
                 driver = webdriver.Chrome(options=self.options)
-                # await asd.edit(content="Logging in!")
-                # driver, element = await self.login(driver)
                 driver.get(list_name)
 
                 if SLOW_ROLLING_TEST_MODE:
                     zzz(SLOW_ROLLING_TEST_MODE_SPEED)
 
                 try:
-                    element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, f"div[@class='next']")))
-                    pages = driver.find_elements(By.XPATH, "//div[@class='paginate-page]")
-                    pages = [p.getText() for p in pages]
+                    print("t")
+                    element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, "a[@class='next']")))
+                    print("Next")
+                    pages = driver.find_elements(By.XPATH, "//li[contains(@class,'paginate-page')]//a")
+                    print(pages)
+                    pages = [p.get_text() for p in pages]
                     pnum = random.choice(pages)
                     if pnum != 1:
                         new_page = f"page/{str(pnum)}/"
