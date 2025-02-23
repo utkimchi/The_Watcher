@@ -12,10 +12,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 import typing
 import discord
+from discord.app_commands import Choice
 from discord.ext import commands
+from utils import LinkSelect,SelectView
+import enum
 
 SLOW_ROLLING_TEST_MODE = True
 SLOW_ROLLING_TEST_MODE_SPEED = 2
+
 
 class addmovie(commands.Cog):
     def __init__(self, bot):
@@ -164,23 +168,22 @@ class addmovie(commands.Cog):
 
             except RuntimeError:
                 driver.quit()
-                await asd.edit(content="sumtin wong")    
+                await asd.edit(content="sumtin wong")
 
-    @discord.app_commands.command(name="randomovie",description= "Get a random flick from our Kinosphere!")
-    @discord.app_commands.choices(ourlists=[
-        discord.app_commands.Choice(name="Kinosphere", value=("editin.env","editin.env")),
-        discord.app_commands.Choice(name="Triple C", value=("scrofa","ccc-ppp"))
-    ])
 
-    async def randomovie(self, interaction: discord.Interaction, otherlistlink: str = None, ourlists: discord.app_commands.Choice[tuple] = None):
+    @discord.app_commands.command(name="randomovie")
+    @discord.app_commands.describe(ourlists= "Get a random flick from our Kinosphere!")
+    @discord.app_commands.choices(ourlists=[Choice(name= 'Kinosphere', value= 'kinosphere'),Choice(name="Triple C", value="ccc-ppp")] )
+    async def randomovie(self, interaction: discord.Interaction, ourlists:Choice[str], otherlistlink: str = None, ):
             print("THIS HAS BEEN RELOADED")
             await interaction.response.defer()
 
             if ourlists is not None:
-                if ourlists.name == "Kinosphere":
-                    list_name = f'https://letterboxd.com/{self.lb_user}/list/{self.lb_list}/'
+                if ourlists.lower() == self.lb_list.lower():
+                    list_name = f'https://letterboxd.com/{self.lb_user.lower()}/list/{self.lb_list}/'
                 else:
-                    list_name = f'https://letterboxd.com/{ourlists.value[0]}/list/{ourlists.value[1]}/'
+                    #example list
+                    list_name = f'https://letterboxd.com/scrofa/list/{ourlists}/'
             else:
                 if otherlistlink == None:
                     otherlistlink = f'https://letterboxd.com/{self.lb_user.lower()}/list/{self.lb_list}/'
@@ -201,20 +204,26 @@ class addmovie(commands.Cog):
                     zzz(SLOW_ROLLING_TEST_MODE_SPEED)
 
                 try:
+                    print("n")
+                    element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH,"//a[@class='next']")))
                     print("t")
                     pages = driver.find_elements(By.XPATH, "//li[contains(@class,'paginate-page')]//a")
                     print(pages)
-                    pages = [p.get_text() for p in pages]
+                    pages = [p.text for p in pages]
+                    pages.append('1')
+                    print(pages)
                     pnum = random.choice(pages)
-                    if pnum != 1:
+                    print(pnum)
+                    if str(pnum) != '1':
                         new_page = f"page/{str(pnum)}/"
                         new_page = list_name+new_page
+                        print(new_page)
                         driver.get(new_page)
+
                     if SLOW_ROLLING_TEST_MODE:
                         zzz(SLOW_ROLLING_TEST_MODE_SPEED)
                 except:
                     await asd.edit(content="Small List!")
-
                 elements = driver.find_elements(By.XPATH, "//ul[contains(@class, 'film-list') and contains(@class,'poster-list')]//li//div")
                 slugs = [e.get_attribute('data-film-slug') for e in elements if e.get_attribute('data-film-slug') is not None]
                 movie_slug = random.choice(slugs)
@@ -227,7 +236,15 @@ class addmovie(commands.Cog):
                 driver.quit()
                 await asd.edit(content="Couldn't finda friggin film..")
 
-            
+    @discord.app_commands.command(name="getlist",description= "See our lists!")
+    async def getlist(self, interaction: discord.Interaction):
+            await interaction.response.defer(thinking=False)
+            owner_list = f"https://letterboxd.com/{self.lb_user.lower()}/list/{self.lb_list.lower()}/"
+            example_list = "https://letterboxd.com/scrofa/list/ccc-ppp/"
+            pages = {self.lb_list:owner_list,"C&C&C P&P&P":example_list} 
+            list_choices = LinkSelect(pages)
+            await interaction.followup.send("Here they are~",view=SelectView(list_choices),ephemeral=True)
+
 async def setup(bot):
     await bot.add_cog(addmovie(bot))
 
