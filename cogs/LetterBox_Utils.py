@@ -78,19 +78,28 @@ class lbUtilities(commands.Cog):
                 if SLOW_ROLLING_TEST_MODE:
                     zzz(SLOW_ROLLING_TEST_MODE_SPEED)
 
-                element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.LINK_TEXT, "Add to lists…")))
+                try:
+                    element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.LINK_TEXT, "Add to lists…")))
+                except:
+                    await asd.edit(content="Couldn't Find Add List...")
+                    return
+                
                 element = driver.find_element(By.LINK_TEXT, "Add to lists…")
                 element.click()
 
                 if SLOW_ROLLING_TEST_MODE:
                     zzz(SLOW_ROLLING_TEST_MODE_SPEED)
 
-                await asd.edit(content="Cool list!")
+                await asd.edit(content="Adding!")
 
                 chosen_path = f"//label[contains(@class,'-added')][contains(@class,'list')]/span[@class='label']/span[contains(.,'{list}')]"
                 click_path = f"//span[contains(.,'{list}')]"
 
-                element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.LINK_TEXT, "New list…")))
+                try:
+                    element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.LINK_TEXT, "New list…")))
+                except:
+                    await asd.edit(content="Couldn't add")
+                    return
 
                 try:
                     element = driver.find_element(By.XPATH, chosen_path)
@@ -134,6 +143,7 @@ class lbUtilities(commands.Cog):
                 driver = webdriver.Chrome(options=self.options)
                 await asd.edit(content="Logging in!")
                 driver, element = await self.login(driver)
+                await asd.edit(content="Logged!")
                 driver.get(movie_link)
 
                 if SLOW_ROLLING_TEST_MODE:
@@ -180,11 +190,11 @@ class lbUtilities(commands.Cog):
             await interaction.response.defer()
 
             if ourlists is not None:
-                if ourlists.lower() == self.lb_list.lower():
+                if ourlists.value == self.lb_list.lower():
                     list_name = f'https://letterboxd.com/{self.lb_user.lower()}/list/{self.lb_list}/'
                 else:
                     #example list
-                    list_name = f'https://letterboxd.com/scrofa/list/{ourlists}/'
+                    list_name = f'https://letterboxd.com/scrofa/list/{ourlists.value}/'
             else:
                 if otherlistlink == None:
                     otherlistlink = f'https://letterboxd.com/{self.lb_user.lower()}/list/{self.lb_list}/'
@@ -206,7 +216,7 @@ class lbUtilities(commands.Cog):
 
                 try:
                     print("n")
-                    element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH,"//a[@class='next']")))
+                    element = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH,"//a[@class='next']")))
                     print("t")
                     pages = driver.find_elements(By.XPATH, "//li[contains(@class,'paginate-page')]//a")
                     print(pages)
@@ -244,6 +254,11 @@ class lbUtilities(commands.Cog):
             example_list = "https://letterboxd.com/scrofa/list/ccc-ppp/"
             pages = {self.lb_list:owner_list,"C&C&C P&P&P":example_list} 
             await interaction.response.send_message("Here they are~",view=SelectView(opts=pages), ephemeral=True)
+    
+    @discord.app_commands.command(name="threaten",description= "Fuck McRob!")
+    async def threaten(self, interaction: discord.Interaction):
+        await interaction.response.send_message("I'm twisting the circuits controlling my thoughts into a sigil that hexes your bloodline for a thousand years. Bitch")
+    
 
 async def setup(bot):
     await bot.add_cog(lbUtilities(bot))
