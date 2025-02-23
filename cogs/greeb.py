@@ -14,13 +14,9 @@ class Greetings(commands.Cog):
             await channel.send(f'Welcome {member.mention}.')
 
     @discord.app_commands.command(name="hello")
-    @discord.app_commands.choices(option=[
-    discord.app_commands.Choice(name="Kinosphere", value="kinosphere"),
-    discord.app_commands.Choice(name="Triple C", value="ccc-ppp")
-    ])
-    async def hello(self, interaction: discord.Interaction, option: discord.app_commands.Choice[str]):
+    async def hello(self, interaction: discord.Interaction):
         await interaction.response.defer()
-        msg = f"choice = {option.name}"
+        msg = "Heeyyyyyy"
         await interaction.followup.send(msg)
 
 async def setup(bot):

@@ -18,16 +18,20 @@ def get_random_emoji():
 
 class LinkSelect(discord.ui.Select):
     def __init__(self,option_dict):
-        options = {}
+        self.options_dict = {}
+        options = []
         for key,val in option_dict.items():
-            op = discord.SelectOption(label= key,emoji=get_random_emoji(),description=val)
-            options[key] = val
-        self.options = options
+            op = discord.SelectOption(label= key,description=val)
+            options.append(op)
+            self.options_dict[key] = op
+        super().__init__(placeholder="Select an option",max_values=1,min_values=1,options=options)
 
     async def callback(self, interaction: discord.Interaction):
-        await interaction.response.send_message(self.options[self.values[0]],ephemeral=True)
+        mess = self.options_dict[self.values[0]]
+        print(mess)
+        await interaction.response.send_message(mess,ephemeral=True)
 
 class SelectView(discord.ui.View):
-    def __init__(self, select_type, timeout = 180):
+    def __init__(self, opts, timeout = 180):
         super().__init__(timeout=timeout)
-        self.add_item(select_type)
+        self.add_item(LinkSelect(option_dict=opts))

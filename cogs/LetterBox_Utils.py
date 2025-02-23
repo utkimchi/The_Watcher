@@ -32,7 +32,7 @@ class addmovie(commands.Cog):
         self.lb_list = os.getenv("LB_LIST_NAME")
 
         self.options = Options()
-        #self.options.add_argument('--headless=new')
+        self.options.add_argument('--headless=new')
         self.options.add_argument('load-extension=' + self.adblock_path)
         self.options.add_argument('--ignore-certificate-errors')
         self.options.add_argument('--ignore-ssl-errors')
@@ -238,12 +238,11 @@ class addmovie(commands.Cog):
 
     @discord.app_commands.command(name="getlist",description= "See our lists!")
     async def getlist(self, interaction: discord.Interaction):
-            await interaction.response.defer(thinking=False)
+            print("GL")
             owner_list = f"https://letterboxd.com/{self.lb_user.lower()}/list/{self.lb_list.lower()}/"
             example_list = "https://letterboxd.com/scrofa/list/ccc-ppp/"
             pages = {self.lb_list:owner_list,"C&C&C P&P&P":example_list} 
-            list_choices = LinkSelect(pages)
-            await interaction.followup.send("Here they are~",view=SelectView(list_choices),ephemeral=True)
+            await interaction.response.send_message("Here they are~",view=SelectView(opts=pages), ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(addmovie(bot))
