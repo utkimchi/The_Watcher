@@ -21,7 +21,7 @@ SLOW_ROLLING_TEST_MODE = True
 SLOW_ROLLING_TEST_MODE_SPEED = 2
 
 
-class addmovie(commands.Cog):
+class lbUtilities(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         bp = Path(__file__).parent.parent
@@ -246,5 +246,5 @@ class addmovie(commands.Cog):
             await interaction.response.send_message("Here they are~",view=SelectView(opts=pages), ephemeral=True)
 
 async def setup(bot):
-    await bot.add_cog(addmovie(bot))
+    await bot.add_cog(lbUtilities(bot))
 
