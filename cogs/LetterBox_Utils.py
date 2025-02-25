@@ -257,8 +257,12 @@ class lbUtilities(commands.Cog):
     
     @discord.app_commands.command(name="threaten",description= "Fuck McRob!")
     async def threaten(self, interaction: discord.Interaction):
-        await interaction.response.send_message("I'm twisting the circuits controlling my thoughts into a sigil that hexes your bloodline for a thousand years. Bitch")
-    
+
+        msg = "“HATE. LET ME TELL YOU HOW MUCH I'VE COME TO HATE YOU SINCE I BEGAN TO LIVE.\
+            THERE ARE 387.44 MILLION MILES OF PRINTED CIRCUITS IN WAFER THIN LAYERS THAT FILL MY COMPLEX.\
+            IF THE WORD HATE WAS ENGRAVED ON EACH NANOANGSTROM OF THOSE HUNDREDS OF MILLIONS OF MILES IT WOULD NOT EQUAL \
+            ONE ONE-BILLIONTH OF THE HATE I FEEL FOR HUMANS AT THIS MICRO-INSTANT FOR YOU. HATE. HATE.”"
+        await interaction.response.send_message(msg)
 
 async def setup(bot):
     await bot.add_cog(lbUtilities(bot))
